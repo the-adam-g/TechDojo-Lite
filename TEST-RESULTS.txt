@@ -1,0 +1,11 @@
+TechDojo Lite validation
+
+PASS: 628 questions exported; 111 written model answers and empty answers checked.
+PASS: 3 subjects, 23 topic routes and 109 available mode starts in a jsdom runtime.
+PASS: MCQ session scoring, written keyword marking, manual ticks, skip, retry and PDF-sheet generation.
+PASS: course selection and empty-selection handling.
+PASS: builder shortages, valid papers, separate blank/mark-scheme views, print call, paper practice and advisory timer.
+PASS: all 23 maths exercise UI flows; 9200 generator/checker cases and independent floating-point checks.
+PASS: no PHP/SQL files, backend URLs, account code or browser storage in the static package.
+
+Limit: These runtime checks used jsdom. Chromium was unavailable and its download failed, so visual layout, real browser print dialogs and actual GitHub/DNS deployment have not been verified.
