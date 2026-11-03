@@ -1,0 +1,9 @@
+.biology-planner label { display: block; margin: 1.25rem 0 .55rem; }
+.biology-planner select { width: 100%; white-space: normal; }
+.biology-planner textarea { display: block; }
+.biology-planner #essay-answer { min-height: 24rem; }
+.biology-planner .actions { flex-wrap: wrap; }
+details.card { margin: .8rem 0; }
+details.card summary { cursor: pointer; padding: .25rem 0; }
+details.card li { margin: .6rem 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .biology-planner #essay-answer { min-height: 18rem; } }

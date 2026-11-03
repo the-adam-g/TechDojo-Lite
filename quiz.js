@@ -199,6 +199,7 @@
     big.textContent = s + ' / ' + q.marks + ' marks';
     head.appendChild(big);
     box.appendChild(head);
+    if(q.marking_guidance){var guidance=document.createElement("p");guidance.className="muted";guidance.textContent=q.marking_guidance;box.appendChild(guidance);}
     if (cur.cap !== null && !cur.edited) {
       var capn = document.createElement('p'); capn.className = 'cap-note';
       capn.textContent = 'Your answer is short for ' + q.marks + ' marks (' + cur.words + ' words), so the auto-marker has limited you to ' + cur.cap + '. Develop each point in a full sentence.';

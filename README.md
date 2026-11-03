@@ -1,96 +1,70 @@
-# TechDojo Lite
+# TechDojo Lite — course and lab update
 
-A static edition of the supplied TechDojo project for GitHub Pages.
-No PHP, SQL, database, build step, npm install or server API is needed.
+A static, account-free edition of TechDojo for GitHub Pages or another static host. No PHP, database, build command or production npm installation is required.
 
-## Included
+## Course parity with the supplied full version
 
-- All 628 supplied questions: IT Data Analytics (61), Computer Science (387), Engineering (180).
-- Subject, unit and topic browsing, with the original content-coverage notices.
-- Quick Fire, Short Answers, Extended Response, Mixed Paper and Full Topic modes where the bank has suitable questions.
-- Training across a course or a selection of topics.
-- Written keyword marking, editable mark-point ticks and model answers.
-- 23 generated binary/maths exercise types with browser-calculated answers.
-- Practice paper builder: select topics, choose question counts and an advisory time limit.
-- Blank printable papers and separate mark schemes.
-- Print / Save as PDF for papers and completed-session answers.
-- A Full / Lite comparison at `choose.html`, linked to the requested domains.
+| Course | Questions | Coverage |
+| --- | ---: | --- |
+| OCR IT Data Analytics | 61 | F201 topic areas 1–2; retains the existing coverage notice |
+| OCR A-level Computer Science H446 | 519 | Component 01 plus all supplied Component 02 theory |
+| OCR Engineering | 180 | F131 materials science and technology |
+| AQA A-level Biology 7402 | 261 | All 53 content subsections, 12 required practicals, maths/data skills |
+| **Total** | **1,021** | **100 topic routes** |
 
-## Deliberately omitted
+`data/bank.json` matches the latest full-version bank provided in this conversation, including its coverage notices, answer keys, model answers and Biology specification metadata. Missing content in the full version is not presented as complete here. Biology follows AQA version 1.6 (July 2026); see `BIOLOGY-COVERAGE.md` for source mapping and marking limits.
 
-Accounts, authentication, Microsoft sign-in, XP, belts, companions, profile customisation,
-saved activity, dashboards, saved weak areas and cross-device syncing.
-No cookies, localStorage or sessionStorage are used. Questions, answers, marks and generated
-papers exist in memory during the current page visit. Reloading or leaving discards them.
-The quiz completion summary describes only the current attempt.
+## Included tools
 
-The app doesn't automatically redirect when the Full server is unavailable; students can
-choose Lite using its separate address or the comparison page.
+- Subject, unit and topic browsing.
+- Quick Fire, Short Answers, Extended Response, Mixed Paper and Full Topic modes where suitable questions exist.
+- Course-wide and selected-topic training.
+- Written keyword feedback, editable point ticks and model answers.
+- 23 generated binary/maths exercise types.
+- Custom practice papers with exact question counts, advisory timing, blank printable questions and separate answer sheets.
+- Completed-session printing / Save as PDF.
+- SQL playground with fictional insurance data and 15 guided questions.
+- Paper 2 programming lab: 22 Python/pseudocode challenges, method checklists and generated algorithm traces.
+- Biology guide with specification PDF link, paper-focused topic filters and four original essay-planning prompts.
+- Updated Full/Lite comparison that includes the courses and labs.
 
-## Publish on GitHub Pages
+The visual style and supplied `lite.findmycode.org` custom-domain setting are retained. Full-platform links consistently use `https://full.findmycode.org/`, as in the supplied HTML.
 
-1. Create a public GitHub repository for Lite.
-2. Extract this archive. Upload the CONTENTS of the `techdojo-lite` folder to the repository
-   root so `index.html`, `data`, `style.css`, `lite.css` and the JavaScript files sit together.
-   Include `.nojekyll` and `CNAME`.
-3. In the repository, open Settings → Pages. Choose “Deploy from a branch”, select your
-   `main` branch and `/(root)`, then Save.
-4. In Pages settings, set Custom domain to `lite.findmycode.org` and Save. The included
-   `CNAME` file alone does not configure the domain in repository settings.
-5. At your DNS provider, add a CNAME record for `lite` pointing to YOUR GitHub Pages default
-   hostname, normally `YOUR-USERNAME.github.io`. Do not point it to the Full server and do
-   not include a protocol or repository path in the DNS target.
-6. When GitHub's DNS check and certificate provisioning finish, enable Enforce HTTPS.
+## Lite stays account-free
 
-GitHub's official instructions:
-- https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
-- https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
+There are no accounts, authentication, XP, belts, companions, saved weak areas, dashboards or cross-device syncing. Quizzes and papers exist only during the current page visit. Lab work, essay plans, review ticks and SQL changes are held in JavaScript memory, not cookies, localStorage or sessionStorage. Leaving or reloading discards them. Download a programming answer or essay draft before leaving if you want a copy.
 
-The site uses relative paths and query parameters rather than server rewrite rules, so
-it can also run beneath a GitHub project path. To use only the default github.io URL,
-remove the included `CNAME` and omit the custom-domain steps. The comparison's external
-Lite link will still point at `lite.findmycode.org` until you edit it.
+Python executes on the learner's device in a disposable Worker. The pinned Pyodide 0.27.7 runtime downloads from jsDelivr only when Run is pressed, so Python execution requires CDN access and a browser with WebAssembly/Worker support. Pseudocode review, traces, SQL and the rest of the site do not need that runtime. The Blob worker inherits the programming page's restrictive content security policy; allowed network requests are limited to the pinned runtime directory. No PHP worker endpoint is needed.
 
-## Preview locally
+Written marks are approximate revision guidance. They are not official OCR or AQA grades. AQA essays use a separate unscored planner; laboratory practical activities and endorsement still need to be completed through the school/college. Custom papers do not reproduce an official full-paper structure or assessment weighting.
 
-Serve this folder with any static web server. For example, if Python is installed:
+## Install this update
+
+1. Back up the current Lite repository or static site folder.
+2. Extract this ZIP and upload the **contents** of `TechDojo-Lite-main` into the existing site root, keeping the paths together. Include the `data` folder and all new lab scripts/styles. The `tests` folder and Markdown documentation may be omitted from hosting.
+3. Keep your existing GitHub Pages/custom-domain configuration. The supplied `CNAME` remains unchanged. If this is a project-path deployment without a custom domain, use your existing domain setup instead.
+4. Load `index.html` through the host and check that four subject cards appear. Open Biology, the programming lab and the SQL lab. If an old page is cached, hard-refresh it.
+
+This package updates the supplied source files. It does not push to GitHub, change DNS or deploy the live site.
+
+For a local preview, serve this folder with a static server, for example `python3 -m http.server 8000`, and open `http://localhost:8000`. Opening via `file://` will not load the fetched bank reliably.
+
+## Developer checks
+
+`TEST-RESULTS.txt` records completed checks and their limits. Content, SQL and native-Python harness checks run with Node/Python only:
 
 ```sh
-cd techdojo-lite
-python3 -m http.server 8000
+node tests/content.cjs
+node tests/sql.cjs
+node tests/paper2.cjs
+python3 tests/paper2-python.py
 ```
 
-Open http://localhost:8000. Opening the HTML directly with `file://` is unsuitable because
-the question bank is loaded with `fetch`.
+Optional DOM interaction checks use jsdom as a developer-only dependency:
 
-## Landing page for the Full platform
+```sh
+npm install --prefix tests
+npm test --prefix tests
+```
 
-The separately supplied `index.php` is a replacement for the Full platform's original
-`index.php`. It keeps the existing `layout.php`, live question bank and subject-card loop,
-and adds the comparison cards with their styles. It belongs on the PHP host, outside this
-static package. Back up your original index.php before replacing it.
-
-The separately supplied `landing-page-card.html` contains just the styles and cards if
-you prefer to insert them after the hero in your existing landing page.
-
-Full: https://techdojo.findmycode.org/
-Lite: https://lite.findmycode.org/
-
-## Content and maintenance
-
-All supplied course data lives in `data/bank.json`, including the IT questions previously
-embedded in `data.php`. Edit that one JSON file to update Lite's questions. Its subject,
-unit, topic and question fields follow the source project's format. No learner records or
-configuration files from the PHP application were copied into this package.
-
-The supplied material remains incomplete where its notices say so: IT F201 has Topic Areas
-1 and 2; CS currently covers Component 01; Engineering covers F131. An unavailable question
-style is disabled rather than filled with invented questions. Generated maths exercises
-remain separate from the practice paper builder.
-
-Written keyword marking is indicative and can miss valid wording or reward keywords
-without a complete explanation. Use the mark scheme and adjust ticks with judgement.
-These are independent revision questions, not official OCR assessments.
-
-`TEST-RESULTS.txt` describes the checks performed and their limits. Visual browser testing,
-real print-dialog testing and publishing/DNS configuration remain to be checked after deployment.
+The developer dependency is not needed on the host or by learners.

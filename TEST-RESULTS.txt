@@ -1,11 +1,22 @@
-TechDojo Lite validation
+TechDojo Lite update — 3 November 2026
 
-PASS: 628 questions exported; 111 written model answers and empty answers checked.
-PASS: 3 subjects, 23 topic routes and 109 available mode starts in a jsdom runtime.
-PASS: MCQ session scoring, written keyword marking, manual ticks, skip, retry and PDF-sheet generation.
-PASS: course selection and empty-selection handling.
-PASS: builder shortages, valid papers, separate blank/mark-scheme views, print call, paper practice and advisory timer.
-PASS: all 23 maths exercise UI flows; 9200 generator/checker cases and independent floating-point checks.
-PASS: no PHP/SQL files, backend URLs, account code or browser storage in the static package.
+PASS: Complete normalized course bank equals the current full-version bank: 4 courses, 100 topics, 1021 questions.
+PASS: 251 written model answers receive their expected practice points; empty answers score zero. All MCQ answer indices are valid.
+PASS: Every topic opens in a jsdom runtime and offers usable practice modes.
+PASS: Course browsing, MCQ feedback, empty topic-selection handling, custom paper counts, blank/answer-sheet separation and the print call.
+PASS: Biology paper routes filter the correct specification sections. Essay drafting works with in-memory state.
+PASS: SQL sandbox queries and 15 guided-question UI; underlying engine tests cover joins, filters, aggregates, update constraints and equivalent answers.
+PASS: 22 programming challenges, draft entry, run/ready message handshake, stop and trace-mode switch in the DOM test.
+PASS: All 102 Python reference cases in the exact worker harness executed in native Python, including invalid, alternative and print-only answer checks.
+PASS: Paper 2 tests: 132 theory questions, 40 written model answers, 22 challenge schemas and 1200 generated traces.
+PASS: 4600 generated maths answers across 23 skills were accepted by their checker. The supplied Lite maths engine was retained.
+PASS: Local HTML assets/navigation targets exist; JavaScript syntax checks pass.
+PASS: No PHP files or backend links in delivered HTML/JS. DOM tests deliberately block localStorage and sessionStorage; all tested flows pass.
+PASS: Static Python launch uses a Blob Worker with the programming page policy, not a PHP worker endpoint. Runtime code is pinned to Pyodide 0.27.7.
 
-Limit: These runtime checks used jsdom. Chromium was unavailable and its download failed, so visual layout, real browser print dialogs and actual GitHub/DNS deployment have not been verified.
+Limits:
+- DOM tests use jsdom; no visual browser screenshots, browser print-dialog or actual WebAssembly/CDN execution were verified.
+- Native Python confirms lesson/harness logic, not the browser runtime download.
+- The external full-site address, live host, GitHub Pages configuration and DNS were not tested or changed.
+- Full-version content coverage notices and approximate keyword-marking limitations remain applicable.
+- Course parity is with the full-version files available in this conversation, not an independently inspected live server.

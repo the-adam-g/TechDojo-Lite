@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="description" content="Practise SQL joins with fictional insurance tables. A free JavaScript SQL simulator with sandbox and guided questions.">
+<link rel="icon" href="techdojo.ico"><link rel="stylesheet" href="style.css?v=6-sql"><link rel="stylesheet" href="sql.css?v=6">
+<title>SQL playground · TechDojo Lite</title>
+<link rel="stylesheet" href="lite.css"></head>
+<body class="sql-page">
+<header class="top"><a class="brand" href="index.html"><span class="mark" aria-hidden="true">道</span> Tech<b>Dojo</b><span class="lite-badge">Lite</span></a><nav aria-label="Main navigation"><a href="index.html">Subjects</a><a href="paper2.html">Programming lab</a><a href="sql.html">SQL lab</a><a href="index.html?page=maths">Binary maths</a><a href="choose.html">Full or Lite</a><a href="https://full.findmycode.org/">TechDojo Full ↗</a></nav></header>
+<main class="sql-main">
+<p class="crumbs"><a href="index.html">Subjects</a> / SQL playground</p>
+<section class="hero sql-hero"><div><p class="eyebrow">The query dojo</p><h1>Three tables.<br>A world of connections.</h1><p class="lead">Become the analyst at Dojo Insurance. Explore the records, connect customers to their policies and trace every claim.</p></div><div class="sql-hero-mark" aria-hidden="true"><span>SELECT</span><strong>JOIN</strong><span>DISCOVER</span></div></section>
+<div class="sql-mode-bar"><div class="sql-mode-buttons" aria-label="Choose a mode"><button type="button" id="mode-sandbox" aria-pressed="true">Sandbox <span>Explore & change</span></button><button type="button" id="mode-practice" aria-pressed="false">Practice <span>15 guided questions</span></button></div><p>Fictional records · runs in your browser<br><small>Changes and practice progress last for this visit only. No account required.</small></p></div>
+<noscript><p class="notice">Enable JavaScript to use this playground. Queries are simulated entirely in your browser.</p></noscript>
+<p id="storage-notice" class="notice" hidden>Device storage is unavailable. You can still use the lab; your changes and progress will last for this visit.</p>
+<section id="practice-panel" class="sql-practice" hidden aria-labelledby="practice-title">
+<div class="sql-practice-heading"><div><p id="practice-level" class="eyebrow">Getting started</p><h2 id="practice-title">Meet the customers</h2></div><div><label for="question-picker">Choose a question</label><select id="question-picker"></select><p id="practice-progress" class="muted"></p></div></div>
+<p id="practice-prompt"></p><div class="actions"><button type="button" id="show-hint" class="btn ghost">Get a hint</button><button type="button" id="show-answer" class="btn ghost">Show worked answer</button><button type="button" id="next-question" class="btn ghost">Next question →</button></div>
+<div id="hint-panel" class="notice" hidden></div><div id="answer-panel" class="sql-answer" hidden><h3>A worked answer</h3><pre id="answer-sql"></pre><p id="answer-explanation"></p><button type="button" id="load-answer" class="btn ghost">Try this answer in the editor</button></div>
+<p class="muted">Each question uses fresh starting records. Return the requested columns in the stated order; aliases are your choice.</p>
+</section>
+<div class="sql-workspace">
+<aside class="sql-data-panel" aria-labelledby="dataset-heading">
+<div class="section-heading"><div><p class="eyebrow">Dojo Insurance</p><h2 id="dataset-heading">Your tables</h2></div><span class="sql-small-badge" id="dataset-label">Sandbox data</span></div>
+<div class="sql-relationships"><p><strong>customers</strong><small>customer_id · primary key</small></p><div>One customer can own many policies</div><p><strong>policies</strong><small>customer_id → customers.customer_id</small></p><div>One policy can have many claims</div><p><strong>claims</strong><small>policy_id → policies.policy_id</small></p></div>
+<div class="sql-table-buttons" aria-label="Choose a table"><button type="button" data-table="customers" aria-pressed="true">customers <span>7</span></button><button type="button" data-table="policies" aria-pressed="false">policies <span>10</span></button><button type="button" data-table="claims" aria-pressed="false">claims <span>10</span></button></div>
+<h3 id="table-heading">customers</h3><ul id="schema-columns" class="sql-schema"></ul><div id="table-preview" class="sql-table-wrap" tabindex="0" aria-label="Current table records"></div>
+<div class="actions" id="sandbox-data-actions"><button type="button" id="undo-change" class="btn ghost" disabled>Undo last change</button><button type="button" id="reset-data" class="btn ghost">Reset tables</button></div>
+<div id="reset-confirm" class="notice" hidden><p>Restore all three sandbox tables to the starting records? Your completed practice questions remain until you leave or reload.</p><button type="button" id="confirm-reset" class="btn">Reset tables</button> <button type="button" id="cancel-reset" class="btn ghost">Keep my changes</button></div>
+</aside>
+<section class="sql-query-panel" aria-labelledby="editor-heading">
+<div class="section-heading"><div><p class="eyebrow" id="editor-eyebrow">Try a query</p><h2 id="editor-heading">The SQL desk</h2></div><div id="examples-control"><label for="query-example">Load an example</label><select id="query-example"><option value="">Choose an example…</option></select></div></div>
+<div class="sql-editor"><div class="sql-editor-top"><span>query.sql</span><span>Ctrl / ⌘ + Enter to run</span></div><label for="sql-input" class="sr-only">SQL query</label><textarea id="sql-input" rows="12" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="sql-support" placeholder="SELECT name, city FROM customers;"></textarea></div>
+<div class="sql-run-bar"><button type="button" id="run-query" class="btn">Run query →</button><button type="button" id="clear-query" class="btn ghost">Clear editor</button><span id="query-status" role="status" aria-live="polite"></span></div>
+<p id="sql-support" class="muted">Use a single statement. Text goes in single quotes. Table and column names are not case sensitive.</p>
+<section id="result-panel" class="sql-results" aria-labelledby="results-heading"><div class="section-heading"><h2 id="results-heading">Query result</h2><span id="result-count" class="sql-small-badge">Ready when you are</span></div><div id="query-error" class="sql-error" role="alert" hidden></div><div id="practice-feedback" role="status" class="sql-feedback" hidden></div><div id="result-output"><div class="sql-empty"><strong>Ask the data a question.</strong><p>Write a query above, then run it to see the result here.</p></div></div><section id="query-plan-panel" hidden><h3>How your query builds the result</h3><ol id="query-plan" class="sql-plan"></ol></section></section>
+<details class="sql-history"><summary>Recent queries <span id="history-count">0</span></summary><ol id="query-history"></ol></details>
+</section>
+</div>
+<section class="sql-reference" aria-labelledby="reference-heading"><p class="eyebrow">A little help at your desk</p><h2 id="reference-heading">SQL pocket guide</h2><div class="sql-guide-grid"><article><h3>Choose & filter</h3><pre>SELECT name, city
+FROM customers
+WHERE city = 'London'
+ORDER BY name;</pre><p>WHERE filters rows. Use AND / OR and parentheses to combine conditions.</p></article><article><h3>Connect two tables</h3><pre>SELECT c.name, p.policy_type
+FROM customers c
+JOIN policies p
+  ON c.customer_id = p.customer_id;</pre><p>JOIN keeps matching rows. LEFT JOIN also keeps unmatched rows from the first table.</p></article><article><h3>Summarise</h3><pre>SELECT status, COUNT(*) AS total
+FROM claims
+GROUP BY status
+HAVING COUNT(*) &gt; 2;</pre><p>GROUP BY gathers rows. HAVING filters groups. COUNT(column) ignores NULL; COUNT(*) counts rows.</p></article></div>
+<details><summary>What this teaching simulator supports</summary><p>SELECT, DISTINCT, table and column aliases, INNER JOIN, LEFT JOIN, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT and OFFSET. Conditions include =, !=, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;=, AND, OR, NOT, IS NULL, IS NOT NULL, IN, BETWEEN and LIKE (% and _). Arithmetic supports +, −, *, / and %. Aggregates: COUNT, SUM, AVG, MIN and MAX. Other functions: ROUND, LOWER, UPPER, LENGTH, COALESCE and ABS.</p><p>Sandbox also supports INSERT INTO with a column list and VALUES, UPDATE ... SET, and DELETE FROM. Primary keys must be unique; foreign keys must reference existing rows. All provided columns are required. Failed changes leave all tables unchanged.</p><p>This is a small JavaScript emulator, not a full SQL dialect. It does not support subqueries, UNION, RIGHT/FULL/CROSS JOIN, CREATE/DROP/ALTER, date functions, transactions or quoted identifiers. Dates are text in YYYY-MM-DD format. Text comparisons are case sensitive; LIKE ignores case. Use a decimal point for decimal numbers. Results display up to 200 rows, and each table holds up to 200 records. Queries have a work limit to keep the lab responsive.</p></details>
+</section>
+<div class="footer-note">Free to learn. Room to grow.</div></main><footer class="foot">TechDojo · practise, repeat, master.</footer>
+<script src="visit-storage.js"></script><script src="sql-engine.js?v=6"></script><script src="sql-lessons.js?v=6"></script><script src="sql-playground.js?v=6"></script>
+</body></html>
