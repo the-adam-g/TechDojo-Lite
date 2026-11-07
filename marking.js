@@ -79,7 +79,127 @@
   // minimum words per mark before the auto-marker will give full credit (stops keyword dumping)
   function wordsPerMark(q) { return q.nocap ? 0 : (q.t === 'long' ? 12 : 4); }
 
+  function calculationUnit(text) {
+    return text.replace(/[μµ]/g, 'µ').replace(/Ω/g, 'Ω').replace(/[²³]/g, c => c === '²' ? '^2' : '^3')
+      .replace(/[·⋅\s]/g, '');
+  }
+
+  function calculationValue(text, unit) {
+    const normal = text.trim().replace(/[−–]/g, '-').replace(/,/g, '.');
+    const match = normal.match(/^([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))(?:[eE]([+-]?[0-9]+)|\s*[×x*]\s*10\s*\^\s*([+-]?[0-9]+))?\s*(.*)$/u);
+    if (!match || (match[4] && (!unit || calculationUnit(match[4]) !== calculationUnit(unit)))) return null;
+    const value = Number(match[1] + 'e' + (match[2] || match[3] || '0'));
+    return Number.isFinite(value) && (value !== 0 || !/[1-9]/.test(match[1])) ? value : null;
+  }
+
+  function calculationMark(q, text) {
+    const values = text.split(/\r?\n/);
+    const pts = q.parts.map((part, index) => {
+      const value = calculationValue(values[index] || '', part.unit);
+      const margin = 1e-12 * Math.abs(part.value);
+      return {p: part.work, hit: value !== null && Math.abs(value - part.value) <= part.tolerance + margin};
+    });
+    const hits = pts.filter(point => point.hit).length;
+    return {pts, hits, score: hits, cap: null, words: 0};
+  }
+
+  function calculationFields(q, values, onChange) {
+    const group = document.createElement('fieldset');
+    group.className = 'calculation-fields';
+    const legend = document.createElement('legend');
+    legend.textContent = 'Your results';
+    group.append(legend);
+    const previous = String(values ?? '').split(/\r?\n/);
+    let active;
+    const inputs = q.parts.map((part, index) => {
+      const label = document.createElement('label');
+      label.className = 'calculation-label';
+      label.append(document.createTextNode(part.label));
+      const row = document.createElement('span');
+      row.className = 'calculation-entry';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.inputMode = 'decimal';
+      input.enterKeyHint = index === q.parts.length - 1 ? 'done' : 'next';
+      input.autocomplete = 'off';
+      input.autocapitalize = 'off';
+      input.spellcheck = false;
+      input.maxLength = 100;
+      input.value = previous[index] || '';
+      input.setAttribute('aria-label', part.label + (part.unit ? ' in ' + part.unit : ''));
+      input.addEventListener('focus', () => { active = input; });
+      input.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && index < q.parts.length - 1) {
+          event.preventDefault();
+          inputs[index + 1].focus();
+        }
+      });
+      row.append(input);
+      if (part.unit) {
+        const unit = document.createElement('span');
+        unit.className = 'calculation-unit';
+        unit.textContent = part.unit;
+        unit.setAttribute('aria-hidden', 'true');
+        row.append(unit);
+      }
+      label.append(row);
+      group.append(label);
+      return input;
+    });
+    active = inputs[0];
+    const tools = document.createElement('div');
+    tools.className = 'calculation-keypad';
+    tools.setAttribute('aria-label', 'Number entry tools');
+    function key(text, label, insert) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn ghost';
+      button.textContent = text;
+      button.setAttribute('aria-label', label);
+      button.addEventListener('click', () => {
+        if (!active || group.disabled) return;
+        insert(active);
+        active.focus();
+        active.dispatchEvent(new Event('input', {bubbles:true}));
+      });
+      tools.append(button);
+    }
+    key('±', 'Change the sign of the current number', input => {
+      const exponent = input.value.search(/[eE]/);
+      const cursor = input.selectionStart ?? 0;
+      const position = exponent >= 0 && cursor > exponent ? exponent + 1 : 0;
+      const start = input.value.slice(0, position);
+      const rest = input.value.slice(position);
+      input.value = start + (rest.startsWith('-') ? rest.slice(1) : '-' + rest.replace(/^\+/, ''));
+    });
+    key('×10ⁿ', 'Insert scientific notation exponent', input => {
+      if (/[eE]/.test(input.value)) {
+        input.setSelectionRange(input.value.length, input.value.length);
+        return;
+      }
+      input.value = (input.value || '1') + 'e';
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+    const keyboard = document.createElement('button');
+    keyboard.type = 'button';
+    keyboard.className = 'btn ghost';
+    keyboard.textContent = 'Full keyboard';
+    keyboard.setAttribute('aria-pressed', 'false');
+    keyboard.addEventListener('click', () => {
+      const full = keyboard.getAttribute('aria-pressed') !== 'true';
+      keyboard.setAttribute('aria-pressed', String(full));
+      keyboard.textContent = full ? 'Number keyboard' : 'Full keyboard';
+      inputs.forEach(input => { input.inputMode = full ? 'text' : 'decimal'; });
+      active?.focus();
+    });
+    tools.append(keyboard);
+    group.append(tools);
+    group.addEventListener('input', () => onChange(inputs.map(input => input.value).join('\n')));
+    return group;
+  }
+
   function mark(q, text) {
+    if (q.t === "calc") return calculationMark(q, text);
     var N = norm(text), NS = N.replace(/ /g, '');
     var words = wordCount(text);
     var pts = q.pts.map(function (pt) {
@@ -113,5 +233,5 @@
     return { n: 3, label: 'Level 3 (high)', text: 'A wide range of well-explained points. Check the mark scheme for anything you missed.' };
   }
 
-  return { norm: norm, mark: mark, scoreFromTicks: scoreFromTicks, level: level, wordCount: wordCount };
+  return { norm: norm, mark: mark, calculationFields: calculationFields, scoreFromTicks: scoreFromTicks, level: level, wordCount: wordCount };
 }));

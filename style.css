@@ -192,3 +192,9 @@ select {font:inherit;padding:10px;border:1px solid var(--muted);border-radius:8p
 /* Paper builder and generated maths */
 .exam-counts {display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px}.exam-counts label {display:flex;flex-direction:column;gap:8px}.exam-counts input {width:100%;padding:10px;font:inherit}.exam-counts small {font-weight:normal}.paper-controls {margin-bottom:30px}.exam-paper {background:var(--paper,#fff);padding:clamp(16px,4vw,48px);border:1px solid #ddd}.paper-question {border-top:1px solid #ccc;padding:20px 0;break-inside:avoid}.paper-question h3 {line-height:1.5}.paper-question li {margin:6px 0}.answer-space {background:repeating-linear-gradient(transparent,transparent 27px,#ddd 28px);margin-top:16px}#exam-timer {font-weight:bold;padding:12px;border:1px solid #ddd}#math-answer {font:inherit;width:100%;padding:14px}#math-feedback {white-space:pre-wrap}
 @media print {body.paper-print {background:white;color:black}body.paper-print .top,body.paper-print .foot,body.paper-print .footer-note,body.paper-print .paper-controls {display:none!important}body.paper-print main {max-width:none;margin:0;padding:0}body.paper-print .exam-paper {padding:0;border:0;background:white;color:black}body.paper-print .muted {color:#555}body.paper-print h1 {font-size:22pt}body.paper-print h2 {font-size:16pt}body.paper-print h3 {font-size:12pt}.paper-question {break-inside:avoid-page}}
+
+/* Labelled numerical answer fields for engineering calculations. */
+.calculation-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr)); gap:.75rem; margin:.5rem 0 1rem; }
+.calculation-fields label { display:grid; gap:.25rem; }
+.calculation-fields input { width:100%; min-width:0; padding:.6rem; font:inherit; color:var(--ink); background:var(--paper); border:1px solid currentColor; border-radius:.35rem; }
+.calculation-fields[disabled] input { opacity:.8; }

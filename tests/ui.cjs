@@ -9,7 +9,7 @@ async function boot(query='',file='index.html'){
  const w=d.window;w.scrollTo=()=>{};w.print=()=>{w.printed=true};w.confirm=()=>true;
  for(const key of ['localStorage','sessionStorage'])Object.defineProperty(w,key,{get(){throw Error('Persistent storage forbidden in Lite');}});
  w.fetch=async()=>({ok:true,json:async()=>JSON.parse(JSON.stringify(bank))});
- if(file==='index.html'){for(const f of ['marking.js','maths-core.js','lite.js'])w.eval(source(f));await new Promise(r=>setTimeout(r,20));}
+ if(file==='index.html'){for(const f of ['marking.js','maths-core.js','lite-progress.js','lite-dojo.js','lite.js'])w.eval(source(f));await new Promise(r=>setTimeout(r,20));}
  else {
   w.URL.createObjectURL=()=> 'blob:https://lite.test/worker';w.URL.revokeObjectURL=()=>{};
   w.workers=[];w.Worker=class{constructor(url){this.url=url;w.workers.push(this)}postMessage(data){this.last=data}terminate(){this.terminated=true}};
@@ -24,12 +24,12 @@ async function boot(query='',file='index.html'){
   d=await boot('?'+new URLSearchParams({page:'subject',s}));assert.equal(d.window.document.querySelectorAll('a.card').length,Object.keys(subject.units).length);d.window.close();
   for(const [u,unit] of Object.entries(subject.units))for(const [t,topic] of Object.entries(unit.topics)){
    d=await boot('?'+new URLSearchParams({page:'quiz',s,u,t}));const w=d.window;
-   assert.equal(w.QUESTIONS.length,topic.questions.length);assert(w.document.querySelectorAll('.mode').length===5,'Quiz script did not load: '+t);
+   assert.equal(w.QUESTIONS.length,topic.questions.length);assert(w.document.querySelectorAll('.mode').length===(topic.questions.some(q=>q.t==='calc')?6:5),'Quiz script did not load: '+t);
    const mode=[...w.document.querySelectorAll('.mode')].find(b=>!b.disabled);mode.click();assert(w.document.getElementById('question').textContent);
    routes++;total+=topic.questions.length;w.close();
   }
  }
- assert.equal(total,1021);assert.equal(routes,100);
+ assert.equal(total,1783);assert.equal(routes,159);
  d=await boot('?page=training&s=aqa-a-biology-7402');let w=d.window;w.document.getElementById('select-none').click();w.document.getElementById('training-form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.match(w.document.getElementById('selection-error').textContent,/Select at least/);w.close();
  // A complete MCQ response and printable practice paper.
  d=await boot('?page=quiz&s=aqa-a-biology-7402&u=1&t=3.1.1');w=d.window;w.document.querySelector('.mode').click();w.document.querySelector('.option').click();assert(!w.document.getElementById('feedback').hidden);w.close();
@@ -41,5 +41,5 @@ async function boot(query='',file='index.html'){
  d=await boot('','sql.html');w=d.window;w.document.getElementById('sql-input').value='SELECT name, city FROM customers';w.document.getElementById('run-query').click();assert(w.document.querySelector('#result-output table'));w.document.getElementById('mode-practice').click();assert.equal(w.document.getElementById('question-picker').options.length,15);w.close();
  // Programming draft switches and Worker handshake, without downloading runtime.
  d=await boot('','paper2.html');w=d.window;assert.equal(w.document.getElementById('challenge-picker').options.length,22);w.document.getElementById('code-editor').value='def total(values):\n return sum(values)';w.document.getElementById('code-editor').dispatchEvent(new w.Event('input'));w.document.getElementById('run-code').click();assert.equal(w.workers.length,1);assert(w.workers[0].url.startsWith('blob:'));w.workers[0].onmessage({data:{type:'ready'}});assert.equal(w.workers[0].last.type,'run');w.document.getElementById('stop-code').click();assert(w.workers[0].terminated);w.document.getElementById('mode-trace').click();assert(!w.document.getElementById('trace-mode').hidden);w.close();
- assert.deepEqual(errors,[]);console.log('PASS: 4 courses, 100 topic routes, 1021 questions, modes, MCQ feedback, empty selection, custom printable papers, Biology routes/essay draft, SQL and Python Worker handshake; persistent browser storage blocked throughout.');
+ assert.deepEqual(errors,[]);console.log('PASS: 4 courses, 159 topic routes, 1783 questions, modes, MCQ feedback, empty selection, custom printable papers, Biology routes/essay draft, SQL and Python Worker handshake; device storage fallback checked throughout.');
 })().catch(e=>{console.error(e);process.exitCode=1});

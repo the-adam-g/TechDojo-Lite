@@ -6,38 +6,44 @@
   var POOL = {
     mcq: ALL.filter(function (q) { return q.t === 'mcq'; }),
     short: ALL.filter(function (q) { return q.t === 'short'; }),
-    long: ALL.filter(function (q) { return q.t === 'long'; })
+    long: ALL.filter(function (q) { return q.t === 'long'; }),
+    calc: ALL.filter(function (q) { return q.t === 'calc'; })
   };
-  var MINUTES = { mcq: 0.5, short: 2.5, long: 8 };
+  var MINUTES = { mcq: 0.5, short: 2.5, long: 8, calc: 2.5 };
 
   // ---------- modes ----------
   var MODES = [
+    { id: 'calc', glyph: '±', name: 'Calculations', desc: 'Enter numerical results and compare your method with the worked solutions.', plan: { calc: 6 } },
     { id: 'quick', glyph: '速', name: 'Quick Fire', desc: 'Multiple choice with instant feedback. Best for a fast recap.', plan: { mcq: 10 } },
     { id: 'short', glyph: '短', name: 'Short Answers', desc: 'Type 2 to 5 mark answers and get marked against the mark scheme.', plan: { short: 5 } },
     { id: 'long', glyph: '長', name: 'Extended Response', desc: 'Write extended answers and compare them with indicative mark points.', plan: { long: 2 } },
-    { id: 'mixed', glyph: '混', name: 'Mixed Paper', desc: 'A mini exam: multiple choice, then short answers, then an extended question.', plan: { mcq: 6, short: 3, long: 1 } },
-    { id: 'full', glyph: '全', name: 'Full Topic', desc: 'Every question on this topic, easiest style first. All available question styles.', plan: { mcq: 999, short: 999, long: 999 } }
+    { id: 'mixed', glyph: '混', name: 'Mixed Paper', desc: 'A mix of the question types available for this topic.', plan: { mcq: 6, short: 3, long: 1, calc: 4 } },
+    { id: 'full', glyph: '全', name: 'Full Topic', desc: 'Every question on this topic, easiest style first. All available question styles.', plan: { mcq: 999, short: 999, long: 999, calc: 999 } }
   ];
 
   function shuffle(a) { a = a.slice(); for (var j = a.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
 
   function counts(mode) {
     var c = {};
-    ['mcq', 'short', 'long'].forEach(function (t) { c[t] = Math.min(mode.plan[t] || 0, POOL[t].length); });
+    ['mcq', 'calc', 'short', 'long'].forEach(function (t) { c[t] = Math.min(mode.plan[t] || 0, POOL[t].length); });
     return c;
   }
   function modeStats(mode) {
     var c = counts(mode), n = 0, mins = 0;
-    ['mcq', 'short', 'long'].forEach(function (t) { n += c[t]; mins += c[t] * MINUTES[t]; });
+    ['mcq', 'calc', 'short', 'long'].forEach(function (t) { n += c[t]; mins += c[t] * MINUTES[t]; });
     return { n: n, mins: Math.max(1, Math.round(mins / 5) * 5 || 1) };
   }
   function modeAvailable(mode) {
     var c = counts(mode), types = 0;
-    ['mcq', 'short', 'long'].forEach(function (t) { if (c[t] > 0) types++; });
+    ['mcq', 'calc', 'short', 'long'].forEach(function (t) { if (c[t] > 0) types++; });
     if (mode.id === 'mixed') return types >= 2;
     return types > 0;
   }
-  if (quizData.dataset.course === '1') { MODES[4].name='Full Course'; MODES[4].desc='Every available question in your selection. Allow time for a longer session.'; }
+  if (quizData.dataset.course === '1') {
+    var fullMode = MODES.find(function (mode) { return mode.id === 'full'; });
+    fullMode.name = 'Full Course';
+    fullMode.desc = 'Every available question in your selection. Allow time for a longer session.';
+  }
   function balanced(pool, count) {
     var groups={}; shuffle(pool).forEach(function(q){ (groups[q._key] ||= []).push(q); });
     var keys=shuffle(Object.keys(groups)),out=[];
@@ -47,8 +53,8 @@
   function buildSet(mode) {
     if (quizData.dataset.paper === '1') return ALL.slice();
     var c = counts(mode), out = [];
-    ['mcq', 'short', 'long'].forEach(function (t) { out = out.concat(quizData.dataset.course === '1' ? balanced(POOL[t],c[t]) : shuffle(POOL[t]).slice(0,c[t])); });
-    return mode.id === 'quick' || mode.id === 'short' || mode.id === 'long' ? shuffle(out) : out;
+    ['mcq', 'calc', 'short', 'long'].forEach(function (t) { out = out.concat(quizData.dataset.course === '1' ? balanced(POOL[t],c[t]) : shuffle(POOL[t]).slice(0,c[t])); });
+    return mode.id === 'quick' || mode.id === 'short' || mode.id === 'long' || mode.id === 'calc' ? shuffle(out) : out;
   }
 
   var order, i, earned, possible, results, mode, cur, answered;
@@ -60,6 +66,7 @@
     quiz.hidden = true; $('result').hidden = true; $('modes').hidden = false;
     var box = $('mode-list'); box.innerHTML = '';
     MODES.forEach(function (m) {
+      if (m.id === 'calc' && !POOL.calc.length) return;
       var ok = modeAvailable(m), st = modeStats(m);
       var btn = document.createElement('button');
       btn.className = 'mode'; btn.disabled = !ok;
@@ -71,6 +78,7 @@
       if (ok) {
         var c = counts(m), parts = [];
         if (c.mcq) parts.push(c.mcq + ' multiple choice');
+        if (c.calc) parts.push(c.calc + ' calculations');
         if (c.short) parts.push(c.short + ' short');
         if (c.long) parts.push(c.long + ' extended');
         meta.textContent = parts.join(', ') + ' · about ' + st.mins + ' min';
@@ -99,13 +107,17 @@
 
   function render() {
     var q = order[i]; cur = { q: q, committed: false }; answered = false;
+    var previousFields = $('written').querySelector('.calculation-fields');
+    if (previousFields) previousFields.remove();
     $('count').textContent = 'Question ' + (i + 1) + ' of ' + order.length;
     updateScore();
     $('progress').style.width = (i / order.length * 100) + '%';
     $('question').textContent = q.q;
     $('question-source').textContent = q._source || '';
+    document.querySelector('.local-question-tools')?.remove();
+    if(window.TDLite){var tools=TDLite.questionTools(q);tools.classList.add('local-question-tools');$('question').after(tools);}
     var tag = $('qtag');
-    tag.textContent = q.t === 'mcq' ? 'Multiple choice · 1 mark' : (q.t === 'short' ? 'Short answer · ' : 'Extended response · ') + q.marks + ' marks';
+    tag.textContent = q.t === 'mcq' ? 'Multiple choice · 1 mark' : (q.t === 'calc' ? 'Calculation · ' : q.t === 'short' ? 'Short answer · ' : 'Extended response · ') + q.marks + (q.marks === 1 ? ' mark' : ' marks');
     tag.className = 'qtag ' + q.t;
     $('feedback').hidden = true; $('next').hidden = true;
     var box = $('options'); box.innerHTML = '';
@@ -123,9 +135,16 @@
       });
     } else {
       box.hidden = true; $('written').hidden = false;
-      var ta = $('answer'); ta.value = ''; ta.readOnly = false;
+      var ta = $('answer'); ta.value = ''; ta.readOnly = false; ta.hidden = q.t === 'calc';
+      if (ta.hidden) {
+        cur.fields = TDMark.calculationFields(q, '', function (value) { ta.value = value; updateWc(); });
+        ta.after(cur.fields);
+        cur.fields.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && !e.defaultPrevented) { e.preventDefault(); doMark(false); }
+        });
+      }
       $('mark').hidden = false; $('skip').hidden = false; $('scheme').hidden = true; $('scheme').innerHTML = '';
-      $('whint').textContent = q.t === 'long'
+      $('whint').textContent = q.t === 'calc' ? 'Use the units shown. Scientific notation such as 3.2e-4 is accepted.' : q.t === 'long'
         ? 'Aim for a structured answer of about ' + (q.marks * 25) + ' words. Explain and link your points.'
         : 'Aim for one clear, specific point for each mark.';
       updateWc();
@@ -137,6 +156,7 @@
     if (answered) return; answered = true;
     possible += 1;
     if (o.correct) earned++;
+    window.TDLite?.record(q,o.correct?1:0,1);
     document.querySelectorAll('.option').forEach(function (b) {
       b.disabled = true;
       if (b.dataset.correct) b.classList.add('right');
@@ -160,6 +180,11 @@
 
   // ---------- written answers ----------
   function updateWc() {
+    if (cur && cur.fields) {
+      var filled = $('answer').value.split('\n').filter(function (value) { return value.trim(); }).length;
+      $('wcount').textContent = filled + ' / ' + cur.q.parts.length + ' parts entered';
+      return;
+    }
     var n = TDMark.wordCount($('answer').value);
     $('wcount').textContent = n + (n === 1 ? ' word' : ' words');
   }
@@ -171,13 +196,13 @@
   function doMark(skip) {
     var q = cur.q;
     if (answered) return;
-    if (!skip && !$('answer').value.trim()) { $('whint').textContent = 'Write an answer first, or choose "Show mark scheme" to give up on this one.'; $('answer').focus(); return; }
+    if (!skip && !$('answer').value.trim()) { $('whint').textContent = cur.fields ? 'Enter a result or show the worked solution.' : 'Write an answer first, or choose "Show mark scheme" to give up on this one.'; (cur.fields ? cur.fields.querySelector('input') : $('answer')).focus(); return; }
     answered = true;
     cur.answerText = skip ? '' : $('answer').value; cur.skipped = skip;
     var r = TDMark.mark(q, skip ? '' : $('answer').value);
     cur.ticks = r.pts.map(function (p) { return p.hit; });
     cur.pts = r.pts; cur.cap = r.cap; cur.words = r.words; cur.edited = false;
-    $('answer').readOnly = true; $('mark').hidden = true; $('skip').hidden = true;
+    $('answer').readOnly = true; if (cur.fields) cur.fields.disabled = true; $('mark').hidden = true; $('skip').hidden = true;
     renderScheme();
     showNext();
     $('scheme').focus();
@@ -206,13 +231,13 @@
       box.appendChild(capn);
     }
     var help = document.createElement('p'); help.className = 'scheme-help';
-    help.textContent = 'Your written mark counts towards this session when you click Next / See results. Mark scheme (any ' + q.marks + ' points). The auto-marker looks for key words, so it can miss a correct answer in different words. Click a point to tick or untick it yourself.';
+    help.textContent = q.t === 'calc' ? 'Worked solution. Each correct result earns one practice mark.' : 'Your written mark counts towards this session when you click Next / See results. Mark scheme (any ' + q.marks + ' points). The auto-marker looks for key words, so it can miss a correct answer in different words. Click a point to tick or untick it yourself.';
     box.appendChild(help);
     var ul = document.createElement('ul'); ul.className = 'points';
     cur.pts.forEach(function (p, n) {
       var li = document.createElement('li');
       var b = document.createElement('button'); b.type = 'button';
-      b.disabled = cur.skipped;
+      b.disabled = cur.skipped || q.t === 'calc';
       b.className = 'pt ' + (cur.ticks[n] ? 'hit' : 'miss');
       b.setAttribute('aria-pressed', cur.ticks[n] ? 'true' : 'false');
       var mk = document.createElement('span'); mk.className = 'pt-mark'; mk.textContent = cur.ticks[n] ? '✓' : '✗'; mk.setAttribute('aria-hidden', 'true');
@@ -223,6 +248,7 @@
       li.appendChild(b); ul.appendChild(li);
     });
     box.appendChild(ul);
+    if (q.t === 'calc') return;
     var d = document.createElement('details'); d.className = 'model';
     d.open = q.t === 'short' ? true : false;
     var sm = document.createElement('summary'); sm.textContent = 'Model answer';
@@ -234,6 +260,7 @@
     if (cur.committed) return; cur.committed = true;
     var q = cur.q, s = curScore();
     possible += q.marks; earned += s;
+    window.TDLite?.record(q,cur.skipped?0:s,q.marks);
     var missed = [];
     cur.pts.forEach(function (p, n) { if (!cur.ticks[n]) missed.push(p.p); });
     results.push({ q: q, got: s, max: q.marks, missed: s >= q.marks ? [] : missed.slice(0, 6), answer: cur.answerText, skipped: cur.skipped, pts: cur.pts.map(function(p,n){return {p:p.p,hit:!!cur.ticks[n]};}) });
@@ -253,11 +280,11 @@
     $('result-score').textContent = earned + ' / ' + possible + ' marks (' + pct + '%)';
     $('result-msg').textContent = pct >= 85 ? 'Strong session! Revisit the points you missed.' : pct >= 50 ? 'Good progress. Practise the questions below to build confidence.' : 'Keep training. Use the explanations and mark schemes to guide your next attempt.';
 
-    var by = { mcq: [0, 0], short: [0, 0], long: [0, 0] };
+    var by = { mcq: [0, 0], short: [0, 0], long: [0, 0], calc: [0, 0] };
     results.forEach(function (r) { by[r.q.t][0] += r.got; by[r.q.t][1] += r.max; });
-    var names = { mcq: 'Multiple choice', short: 'Short answer', long: 'Extended response' };
+    var names = { mcq: 'Multiple choice', short: 'Short answer', long: 'Extended response', calc: 'Calculations' };
     var bd = $('breakdown'); bd.innerHTML = '';
-    ['mcq', 'short', 'long'].forEach(function (t) {
+    ['mcq', 'calc', 'short', 'long'].forEach(function (t) {
       if (!by[t][1]) return;
       var d = document.createElement('div'); d.className = 'bd';
       var n = document.createElement('span'); n.textContent = names[t];
@@ -316,7 +343,7 @@
     results.forEach(function (r, n) {
       var q = r.q, box = el('section', 'ps-q');
       var tag = q.t === 'mcq' ? 'Multiple choice · 1 mark'
-        : (q.t === 'short' ? 'Short answer · ' : 'Extended response · ') + q.marks + ' marks';
+        : (q.t === 'calc' ? 'Calculation · ' : q.t === 'short' ? 'Short answer · ' : 'Extended response · ') + q.marks + (q.marks === 1 ? ' mark' : ' marks');
       box.appendChild(el('h2', '', 'Question ' + (n + 1) + ' (' + r.got + ' / ' + r.max + ')'));
       box.appendChild(el('p', 'ps-tag', tag));
       box.appendChild(el('p', 'ps-question', q.q));
@@ -332,7 +359,7 @@
       }
 
       // Mark scheme below it
-      box.appendChild(el('h3', '', q.t === 'mcq' ? 'Correct answer' : 'Mark scheme (any ' + q.marks + ' points)'));
+      box.appendChild(el('h3', '', q.t === 'mcq' ? 'Correct answer' : q.t === 'calc' ? 'Worked solution' : 'Mark scheme (any ' + q.marks + ' points)'));
       if (q.t === 'mcq') {
         box.appendChild(el('p', 'ps-correct', q.o[q.a]));
         box.appendChild(el('p', 'ps-explain', q.e));
@@ -342,7 +369,7 @@
           ul.appendChild(el('li', p.hit ? 'hit' : 'miss', (p.hit ? '✓ ' : '✗ ') + p.p));
         });
         box.appendChild(ul);
-        box.appendChild(el('h3', '', 'Model answer'));
+        box.appendChild(el('h3', '', q.t === 'calc' ? 'Worked solution' : 'Model answer'));
         box.appendChild(el('p', 'ps-model', q.model));
       }
       sheet.appendChild(box);
@@ -367,7 +394,7 @@
   var examClock;
   function beginPaper() {
     $('change-mode').hidden = true;
-    start({id:'paper',name:'Custom practice paper',plan:{mcq:POOL.mcq.length,short:POOL.short.length,long:POOL.long.length}});
+    start({id:'paper',name:'Custom practice paper',plan:{mcq:POOL.mcq.length,short:POOL.short.length,long:POOL.long.length,calc:POOL.calc.length}});
     clearInterval(examClock);var minutes=Number(quizData.dataset.minutes),end=Date.now()+minutes*60000;
     function tick(){var el=$('exam-timer');if(!minutes){el.textContent='Untimed paper';return;}if(!$('result').hidden){clearInterval(examClock);el.textContent='Paper complete';return;}var left=Math.max(0,Math.ceil((end-Date.now())/1000));el.textContent=left?'Time remaining: '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0'):'Time is up. You can finish your practice; the timer does not submit answers.';if(!left)clearInterval(examClock);}
     tick();if(minutes)examClock=setInterval(tick,1000);
